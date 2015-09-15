@@ -7,25 +7,25 @@ The only programming language that looks good in a bow tie. The basic concept is
 ### statement
 An individual line of code is a statement. Statements may be nested to form code blocks. For example, while/when/if blocks, as well as time locks, both nest statements inside themselves.
 
-A statement can be unexecuted, executing, waiting, or exhausted.
+A statement can be one of four states:
 
-Unexecuted statements are statements within an execution which are not parsed as waiting, but have not yet been reached by execution.
-Waiting means this statement was parsed but a conditional is not yet met, so it has not actually done anything.
-Executing means this is the current statement being processed in a given execution (see below). Due to nesting execution/propagation, more than one statment can be marked as executing at a time, but one statement cannot be executed again while it is still marked as executing.
-Exhausted statments were executed successfully and will not be executed again.
+ - **Unexecuted** - statements within an execution which are not parsed as waiting, but have not yet been reached by execution.
+ - **Waiting** - statements which have been parsed but a conditional is not yet met.  This could mean the statement has not actually done anything OR the is waiting to to processed again.
+ - **Executing** - all statements currently being processed in a given execution (see below). Due to nesting execution/propagation, more than one statment can be marked as executing at a time, but one statement cannot be executed again while it is still marked as executing.
+ - **Exhausted** - statments which have been parsed and executed and will not be executed again
 
 Statements consist of precisely one operator. Each operator is a node. Operators can have operands, each of which is a node. Nodes can be constants, variables, or another operator.
 Some operators have a nested execution (WHILE/WHEN/IF/LOCK) - these operators themselves cannot be an operand of another operator.
 
 ### execution
-An execution is simply a list of statements. Statements are executed in the order they are in the file. However, statements which cannot be evaluated (due to variable not defined) are stored as unexecuted. WHILE and WHEN blocks also are stored, though they can be executed immediately if their conditional is true.
+An execution is simply a list of statements. Statements are executed in the order they are in the file. However, statements which cannot be evaluated (due to variable not defined) are stored as waiting. WHILE and WHEN blocks also are stored, though they can be executed immediately if their conditional is true.
 
 Execution of a statement consists of the actual statement execution (including storing of unexecutable statements or while/when blocks), then if a change was made, propogation of that change.
 
-Execution ends once the last statement has been read and (if possible) executed, even if there are statements left unexecuted. These merely represent unused code branches.
+Execution ends once the last statement has been read and (if possible) executed and all resulting propogations are resolved. This could result in statements being left unexecuted. These merely represent unused code branches.
 
 ### propogation
-When any change to variable state is made (define or set a variable, delete a variable), that change immediately propogates outwards (alternating up and down a statement at a time) and causes re-evaluation of waiting statements or while/when conditionals which references that variable. This allows variables to be used towards the top of a file, but defined at the bottom. This wave of execution is simply referred to as propogation.
+When any change to variable state is made (creating, updating or deleting a variable), that change immediately propogates outwards (alternating up and down a statement at a time) and causes re-evaluation of waiting statements or while/when conditionals which references that variable. This allows variables to be used towards the top of a file, but defined at the bottom. This wave of execution is simply referred to as propogation.
 
 Propogation nests, so a propogation which triggers another change starts the new propogation immediately, then (normally) resumes the previous propogation. If the second change is to the same variable that is currently propogating, it stops the first propogation before starting the new one.
 
